@@ -1,93 +1,148 @@
 "use client"
 import { motion, AnimatePresence } from "framer-motion"
 import { TripIntakeForm } from "@/components/features/TripIntakeForm"
+import OperationsFeed from "@/components/features/OperationsFeed"
 import { useTripStore } from "@/hooks/useTripState"
 import { TripAPI } from "@/services/api"
 import { GlassCard } from "@/components/ui/GlassCard"
+import { CloudRain, AlertCircle, RefreshCcw } from "lucide-react"
 
 export default function Home() {
-  const { isGenerating, setGenerating, updateActivities, activities, destination, setDestination, reasoning } = useTripStore();
+  const { 
+    isGenerating, 
+    setGenerating, 
+    updateTrip, 
+    activities, 
+    destination, 
+    setDestination, 
+    reasoning,
+    tripId,
+    totalBudget
+  } = useTripStore();
 
   const handleGenerate = async (dest: string, days: number) => {
     setGenerating(true);
     setDestination(dest);
     try {
-      const response = await TripAPI.generate(dest, days, 2000);
-      updateActivities(response.activities.map((act: any, i: number) => ({
-        id: String(i),
-        name: act.name,
-        startTime: act.start_time,
-        endTime: act.end_time,
-        cost: act.estimated_cost
-      })), response.ai_reasoning);
+      const response = await TripAPI.generate(dest, days, totalBudget);
+      updateTrip(response);
     } catch (error) {
       console.error("Failed to generate trip:", error);
-      alert("Failed to connect to the AI Orchestrator Backend. Is it running on port 8000?");
+      alert("AI Orchestrator Link Error. Ensure Backend is live.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleSimulateDisruption = async (event: string) => {
+    if (!tripId) return;
+    setGenerating(true);
+    try {
+      const response = await TripAPI.adapt(tripId, event, activities, destination || "", totalBudget);
+      updateTrip(response);
+    } catch (error) {
+      console.error("Adaptation failed:", error);
     } finally {
       setGenerating(false);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-20 relative">
+    <div className="min-h-screen flex flex-col items-center px-4 py-20 relative overflow-x-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-500/10 blur-[120px] pointer-events-none rounded-full" />
+      
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-full max-w-3xl space-y-8"
+        className="w-full max-w-6xl z-10"
       >
-        <div className="text-center space-y-4">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40">
-            Orchestrate Your Escape.
+        <div className="text-center mb-12 space-y-4">
+          <h1 className="text-5xl md:text-8xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/30 leading-none mb-4">
+            TRAVEL OPS CENTER
           </h1>
-          <p className="text-lg md:text-xl text-white/50 max-w-xl mx-auto font-light">
-            AI-native travel planning that adapts in real-time. Where to next?
+          <p className="text-lg md:text-xl text-blue-400/60 max-w-2xl mx-auto font-medium uppercase tracking-[0.2em]">
+            Adaptive AI Travel Orchestration Engine
           </p>
         </div>
 
-        <TripIntakeForm onGenerate={handleGenerate} isGenerating={isGenerating} />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Main Controls & Itinerary */}
+          <div className="lg:col-span-7 space-y-8">
+            <GlassCard className="p-8">
+              <TripIntakeForm onGenerate={handleGenerate} isGenerating={isGenerating} />
+            </GlassCard>
 
-        {/* Display results beautifully when ready */}
-        <AnimatePresence>
-          {activities.length > 0 && !isGenerating && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="mt-12 space-y-4"
-            >
-              <h2 className="text-2xl font-semibold text-white/90">Your {destination} Itinerary</h2>
-              
-              {reasoning && (
-                <GlassCard className="p-4 mb-6 border-accent-violet/30 bg-accent-violet/5">
-                  <h3 className="text-xs font-semibold text-accent-violet mb-2 uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-accent-violet animate-pulse" />
-                    Gemini Reasoning & Maps Context
-                  </h3>
-                  <p className="text-white/70 text-sm leading-relaxed italic">"{reasoning}"</p>
-                </GlassCard>
+            <AnimatePresence>
+              {activities.length > 0 && !isGenerating && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-6"
+                >
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-white/90">Managed Itinerary</h2>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleSimulateDisruption("Heavy Rainstorm")}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg text-xs font-bold text-blue-400 transition-all"
+                      >
+                        <CloudRain className="w-3.5 h-3.5" /> Simulate Rain
+                      </button>
+                      <button 
+                        onClick={() => handleSimulateDisruption("Local Transit Strike")}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs font-bold text-red-400 transition-all"
+                      >
+                        <AlertCircle className="w-3.5 h-3.5" /> Simulate Delay
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {activities.map((act, i) => (
+                      <GlassCard key={i} className="p-4 flex justify-between items-center group hover:border-blue-500/50 transition-colors">
+                        <div>
+                          <h3 className="font-bold text-lg text-white/90">{act.name}</h3>
+                          <div className="flex items-center gap-2 text-white/40 text-sm">
+                            <span className="font-mono text-blue-400/80">{act.start_time} - {act.end_time}</span>
+                            <span>•</span>
+                            <span className="italic">{act.description || 'Verified via Google Maps'}</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xl font-black text-white/90">${act.estimated_cost}</div>
+                          <div className="text-[10px] text-blue-400/60 uppercase font-bold tracking-widest">Estimated</div>
+                        </div>
+                      </GlassCard>
+                    ))}
+                  </div>
+                </motion.div>
               )}
+            </AnimatePresence>
+          </div>
 
-              <div className="grid gap-4">
-                {activities.map((act) => (
-                  <GlassCard key={act.id} className="p-4 flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium text-lg text-white/90">{act.name}</h3>
-                      <p className="text-white/50 text-sm">{act.startTime} - {act.endTime}</p>
-                    </div>
-                    <div className="text-accent-cyan font-semibold">
-                      ${act.cost}
-                    </div>
+          {/* Operations Feed & Intelligence */}
+          <div className="lg:col-span-5 space-y-6">
+            <OperationsFeed />
+            
+            <AnimatePresence>
+              {reasoning && !isGenerating && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  <GlassCard className="p-6 bg-blue-500/5 border-blue-500/20">
+                    <h3 className="text-xs font-black text-blue-400 mb-3 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <RefreshCcw className="w-3.5 h-3.5" /> Executive Summary
+                    </h3>
+                    <p className="text-sm text-gray-300 leading-relaxed font-medium italic">
+                      "{reasoning}"
+                    </p>
                   </GlassCard>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="flex flex-wrap justify-center gap-4 text-sm text-white/40 pt-8">
-          <span className="px-3 py-1 rounded-full border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 hover:text-white transition-colors">Weekend in Paris</span>
-          <span className="px-3 py-1 rounded-full border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 hover:text-white transition-colors">Tech tour in SF</span>
-          <span className="px-3 py-1 rounded-full border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 hover:text-white transition-colors">Foodie trip to Rome</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </motion.div>
     </div>

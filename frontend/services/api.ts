@@ -15,5 +15,22 @@ export const TripAPI = {
     
     if (!res.ok) throw new Error('Failed to generate trip');
     return res.json();
+  },
+
+  async adapt(tripId: string, event: string, currentActivities: any[], destination: string, budget: number) {
+    const res = await fetch(`${API_BASE}/api/v1/trips/adapt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        trip_id: tripId,
+        event_type: event,
+        current_activities: currentActivities,
+        destination,
+        budget
+      })
+    });
+    
+    if (!res.ok) throw new Error('Failed to adapt trip');
+    return res.json();
   }
 };
