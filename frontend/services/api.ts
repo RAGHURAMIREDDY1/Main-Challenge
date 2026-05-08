@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://voyage-backend-1096400406948.us-central1.run.app';
 
 export const TripAPI = {
   async generate(destination: string, days: number, budget: number) {
