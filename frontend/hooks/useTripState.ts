@@ -14,9 +14,10 @@ interface TripState {
   totalBudget: number;
   currentCost: number;
   isGenerating: boolean;
+  reasoning: string | null;
   setDestination: (dest: string) => void;
   setGenerating: (status: boolean) => void;
-  updateActivities: (activities: Activity[]) => void;
+  updateActivities: (activities: Activity[], reasoning?: string) => void;
 }
 
 export const useTripStore = create<TripState>((set) => ({
@@ -25,10 +26,12 @@ export const useTripStore = create<TripState>((set) => ({
   totalBudget: 2000,
   currentCost: 0,
   isGenerating: false,
+  reasoning: null,
   setDestination: (dest) => set({ destination: dest }),
   setGenerating: (status) => set({ isGenerating: status }),
-  updateActivities: (activities) => set({ 
+  updateActivities: (activities, reasoning) => set({ 
     activities,
+    reasoning: reasoning || null,
     currentCost: activities.reduce((sum, act) => sum + act.cost, 0)
   }),
 }));

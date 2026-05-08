@@ -6,7 +6,7 @@ import { TripAPI } from "@/services/api"
 import { GlassCard } from "@/components/ui/GlassCard"
 
 export default function Home() {
-  const { isGenerating, setGenerating, updateActivities, activities, destination, setDestination } = useTripStore();
+  const { isGenerating, setGenerating, updateActivities, activities, destination, setDestination, reasoning } = useTripStore();
 
   const handleGenerate = async (dest: string, days: number) => {
     setGenerating(true);
@@ -19,7 +19,7 @@ export default function Home() {
         startTime: act.start_time,
         endTime: act.end_time,
         cost: act.estimated_cost
-      })));
+      })), response.ai_reasoning);
     } catch (error) {
       console.error("Failed to generate trip:", error);
       alert("Failed to connect to the AI Orchestrator Backend. Is it running on port 8000?");
@@ -56,6 +56,17 @@ export default function Home() {
               className="mt-12 space-y-4"
             >
               <h2 className="text-2xl font-semibold text-white/90">Your {destination} Itinerary</h2>
+              
+              {reasoning && (
+                <GlassCard className="p-4 mb-6 border-accent-violet/30 bg-accent-violet/5">
+                  <h3 className="text-xs font-semibold text-accent-violet mb-2 uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-accent-violet animate-pulse" />
+                    Gemini Reasoning & Maps Context
+                  </h3>
+                  <p className="text-white/70 text-sm leading-relaxed italic">"{reasoning}"</p>
+                </GlassCard>
+              )}
+
               <div className="grid gap-4">
                 {activities.map((act) => (
                   <GlassCard key={act.id} className="p-4 flex justify-between items-center">

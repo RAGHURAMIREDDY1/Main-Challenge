@@ -14,7 +14,8 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     
     # External APIs
-    OPENAI_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None
+    GOOGLE_MAPS_API_KEY: str | None = None
     WEATHER_API_KEY: str | None = None
     
     # Database
