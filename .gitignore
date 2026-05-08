@@ -1,17 +1,24 @@
-# Node
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-frontend/build/
+# Environment
+.env
+backend/.env
 frontend/.env*.local
 
 # Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+backend/__pycache__/
 backend/venv/
 backend/env/
-backend/__pycache__/
-backend/*.pyc
-backend/.pytest_cache/
-backend/.env
+
+# Node
+node_modules/
+.next/
+out/
+build/
+frontend/node_modules/
+frontend/.next/
 
 # macOS
 .DS_Store
