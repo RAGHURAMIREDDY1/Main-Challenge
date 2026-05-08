@@ -1,16 +1,18 @@
 # Cloud Build configuration for multi-service deployment
 steps:
-  # 1. Build the Backend Image
+  # 1. Build & Push Backend
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/promptwars-repo/voyage-backend', '-f', 'backend/Dockerfile', 'backend']
-    id: 'build-backend'
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/promptwars-repo/voyage-backend']
 
-  # 2. Build the Frontend Image
+  # 2. Build & Push Frontend
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/promptwars-repo/voyage-frontend', '-f', 'frontend/Dockerfile', 'frontend']
-    id: 'build-frontend'
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/promptwars-repo/voyage-frontend']
 
-  # 3. Deploy Backend to Cloud Run
+  # 3. Deploy Backend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -24,9 +26,8 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-    id: 'deploy-backend'
 
-  # 4. Deploy Frontend to Cloud Run
+  # 4. Deploy Frontend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -40,7 +41,6 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-    id: 'deploy-frontend'
 
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/promptwars-repo/voyage-backend'
