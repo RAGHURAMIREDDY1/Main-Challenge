@@ -29,13 +29,15 @@ COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 RUN pip install --no-cache /wheels/*
 
-# Copy the rest of the application code
-COPY . .
+# Copy the rest of the application code into the backend namespace
+COPY . /app/backend
 
 # Create a non-root user and switch to it
+RUN chown -R 1000:1000 /app
 RUN addgroup --system app && adduser --system --group app
 USER app
 
 # Command to run the application using uvicorn with workers for production
 # Cloud Run injects the PORT environment variable dynamically
+ENV PYTHONPATH=/app
 CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT} --workers 4 --proxy-headers --forwarded-allow-ips='*'"]
