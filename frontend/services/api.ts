@@ -2,7 +2,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://voyage-backend-1096
 
 export const TripAPI = {
   async generate(destination: string, days: number, budget: number) {
-    const res = await fetch(`${API_BASE}/trips/generate`, {
+    const res = await fetch(`${API_BASE}/api/v1/trips/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
