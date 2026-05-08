@@ -1,5 +1,5 @@
 import React from 'react';
-import GlassCard from '../ui/GlassCard';
+import { GlassCard } from '../ui/GlassCard';
 import { useTripStore } from '@/hooks/useTripState';
 import { Activity, Zap, ShieldCheck, TrendingUp, Info } from 'lucide-react';
 

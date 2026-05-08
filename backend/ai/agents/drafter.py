@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 logger = structlog.get_logger()
 
-from backend.schemas.trip import Activity, DecisionLogEntry
+from backend.schemas.trip import Activity, DecisionLogEntry, DecisionScores, DecisionRationale
 
 class ItineraryOutput(BaseModel):
     activities: list[Activity]
@@ -51,8 +51,32 @@ class DrafterAgent:
                     )
                 ],
                 activities=[
-                    Activity(name="Louvre Museum", start_time="09:00", end_time="12:00", estimated_cost=20),
-                    Activity(name="Bistro Lunch", start_time="12:30", end_time="14:00", estimated_cost=30)
+                    Activity(
+                        name="Louvre Museum", 
+                        start_time="09:00", 
+                        end_time="12:00", 
+                        estimated_cost=20,
+                        scores=DecisionScores(confidence=0.98, budget_fit=0.9, weather_suitability=1.0, efficiency=0.85, preference_match=0.95),
+                        rationale=DecisionRationale(
+                            selection_why="World-class indoor cultural site; perfect for rain mitigation.",
+                            optimization_logic="Placed in morning slot to bypass afternoon tourist peak.",
+                            alternatives_rejected="Skipped Jardin des Tuileries due to high rain probability.",
+                            timing_rationale="3-hour block allows for major wing coverage without fatigue."
+                        )
+                    ),
+                    Activity(
+                        name="Bistro Lunch", 
+                        start_time="12:30", 
+                        end_time="14:00", 
+                        estimated_cost=30,
+                        scores=DecisionScores(confidence=0.92, budget_fit=0.8, weather_suitability=1.0, efficiency=0.95, preference_match=0.88),
+                        rationale=DecisionRationale(
+                            selection_why="Proximity to Louvre minimizes travel friction.",
+                            optimization_logic="Walking distance transit (5 mins).",
+                            alternatives_rejected="Rejected distant Michelin star option to preserve energy.",
+                            timing_rationale="Standard Parisian lunch window."
+                        )
+                    )
                 ]
             )
 
@@ -86,15 +110,22 @@ class DrafterAgent:
             poi_context = f"Google Maps Context: Consider including '{place['name']}' (Rating: {place['rating']}). "
         
         prompt = f"""
-        You are an Expert AI Travel Operations Engine. 
+        You are an Advanced AI Travel Decision Engine. 
         Create an adaptive itinerary based on these constraints: {json.dumps(context)}
         {poi_context}
         
-        Requirements:
-        1. Output a detailed timeline. 
-        2. For every major sequence choice, provide a DecisionLogEntry explaining WHY, the Tradeoffs, and the Impact.
-        3. Ensure transit times are realistic via Google Maps logic.
-        4. Provide an overall efficiency score (0-100).
+        Requirements for every Activity:
+        1. Multi-dimensional scores (0.0 - 1.0) for: confidence, budget_fit, weather_suitability, efficiency, and preference_match.
+        2. Detailed DecisionRationale explaining:
+           - why this specific location was selected.
+           - how the timing was optimized.
+           - which specific alternatives were rejected and why.
+           - why the specific start/end times were chosen.
+        
+        Requirements for the overall Trip:
+        1. A comprehensive DecisionLogEntry for major planning pivots.
+        2. realistic transit times via Google Maps logic.
+        3. An overall efficiency score (0-100).
         """
         
         output = await self._call_llm(prompt)

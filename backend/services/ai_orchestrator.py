@@ -44,10 +44,10 @@ class AIOrchestrator:
         
         # 3. Drafter AI Generation & Critic Verification
         draft_response = await self.drafter.generate_and_refine(context)
-        activities = draft_response["activities"]
+        initial_draft = draft_response["activities"]
         
         # 4. Deep Google Maps Optimization: Recalculate Travel Efficiency
-        efficiency_data = maps_service.calculate_itinerary_efficiency(activities)
+        efficiency_data = maps_service.calculate_itinerary_efficiency(initial_draft)
         
         # 5. Inject optimization result into Decision Log
         draft_response["decision_log"].append(DecisionLogEntry(
@@ -62,8 +62,9 @@ class AIOrchestrator:
         return TripResponse(
             trip_id=str(uuid.uuid4()),
             destination=prefs.destination,
-            total_cost=self.budget.calculate_total(activities),
-            activities=activities,
+            total_cost=self.budget.calculate_total(initial_draft),
+            activities=initial_draft,
+            evolution_history=[initial_draft], # In a production loop, we would add multiple steps here
             ai_reasoning=draft_response["reasoning"],
             decision_log=draft_response["decision_log"],
             efficiency_score=efficiency_data["efficiency_score"]
