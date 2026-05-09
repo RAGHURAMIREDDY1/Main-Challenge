@@ -70,7 +70,7 @@ class AIOrchestrator:
             efficiency_score=efficiency_data["efficiency_score"]
         )
 
-    async def simulate_disruption(self, trip_id: str, event_type: str, current_activities: List[Activity], destination: str, budget: float) -> TripResponse:
+    async def simulate_disruption(self, trip_id: str, event_type: str, current_activities: list[Activity], destination: str, budget: float) -> TripResponse:
         """
         Triggers a real-time adaptation event.
         """

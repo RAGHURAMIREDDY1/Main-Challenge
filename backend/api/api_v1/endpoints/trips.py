@@ -23,7 +23,7 @@ async def generate_trip(
 class AdaptationRequest(BaseModel):
     trip_id: str
     event_type: str
-    current_activities: List[Activity]
+    current_activities: list[Activity]
     destination: str
     budget: float
 
